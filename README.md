@@ -4,7 +4,7 @@
 
 1. Boot into your Debian GNU/Linux in the Legacy mode
 
-   * When you boot up your CD/DVD make sure you will see `Debian GNU/Linux installer menu (BIOS mode)`
+   * When you boot up your CD/DVD/USB make sure you will see `Debian GNU/Linux installer menu (BIOS mode)`
 
 2. Preparing your installation
 
