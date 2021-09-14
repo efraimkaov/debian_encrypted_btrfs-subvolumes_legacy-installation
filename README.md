@@ -21,9 +21,7 @@
 
    * Finish partitioning and write changes to disk
 
-      * Write the changes to disks
-
-3. Create and configure the subvolumes
+3. Creating and configuring the btrfs subvolumes
 
    * **VERY IMPORTANT**, make sure you read carefully
 
@@ -53,7 +51,7 @@
    # mkdir -p /mnt/@/swap
    # sed -i 's/btrfs   defaults,subvol=@rootfs/btrfs defaults,subvol=@,nossd,noatime,space_cache,compress=zstd/' /mnt/@/etc/fstab
    # echo "/dev/mapper/sda2_crypt /home btrfs defaults,subvol=@home,nossd,noatime,space_cache,compress=zstd 0 0" >> /mnt/@/etc/fstab
-   # echo "/dev/mapper/sda2_crypt /swap btrfs defaults,subvol=@swap,nossd,noatime,space_cache,compress=zstd 0 0" >> /mnt/@/etc/fstab
+   # echo "/dev/mapper/sda2_crypt /swap btrfs defaults,subvol=@swap,nossd,noatime,space_cache,compress=no,nodatacow 0 0" >> /mnt/@/etc/fstab
    # btrfs subvolume list /mnt
    # umount -l /mnt
    # mount -o defaults,subvolid=256,subvol=@,nossd,noatime,space_cache,compress=zstd /dev/mapper/sda2_crypt /target
@@ -73,4 +71,20 @@
 
 5. Post-Installation steps
 
-   * Soon
+   * Boot into the installed system and open a terminal
+
+   * Creating the swapfile
+
+   ```
+   $ sudo -i
+   # truncate -s 0 /swap/swapfile
+   # chattr +C /swap/swapfile
+   # fallocate -l 4G /swap/swapfile
+   # chmod 0600 /swap/swapfile
+   # mkswap /swap/swapfile
+   # swapon /swap/swapfile
+   # echo "/swap/swapfile none swap defaults 0 0" >> /etc/fstab
+   # exit
+   ```
+
+   * Soon more
