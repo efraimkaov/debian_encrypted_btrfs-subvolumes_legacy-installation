@@ -4,9 +4,9 @@
 
 1. Boot into your Debian GNU/Linux in the Legacy mode
 
-   * When you boot up your CD/DVD/USB make sure you will see `Debian GNU/Linux installer menu (BIOS mode)`
+   * When you are booting into your CD/DVD/USB make sure you will see `Debian GNU/Linux installer menu (BIOS mode)`
 
-2. Preparing your installation
+2. Prepare your installation
 
    * Choose your language, configure your keyboard, etc.
 
@@ -21,7 +21,7 @@
 
    * Finish partitioning and write changes to disk
 
-3. Creating and configuring the btrfs subvolumes
+3. Create and configure the btrfs subvolumes
 
    * **VERY IMPORTANT**, make sure you read carefully
 
@@ -32,6 +32,8 @@
       * `space_cache` - The free `space_cache` greatly improves performance when reading block group free space into memory. However, managing the `space_cache` consumes some resources, including a small amount of disk space.
 
       * `compress=zstd` - zstd expose the compression level as a tunable knob with higher levels trading speed and memory for higher compression ratios.
+
+      * `nodatacow` - `nodatacow` implies `nodatasum`, and disables compression. All files created under `nodatacow` are also set the NOCOW file attribute. If `nodatacow` or `nodatasum` are enabled, compression is disabled.
 
       * `discard=async` - **WARNING:** BTRFS documentation recommend you to use `fstrim.timer` service over `discard=async` option. By default many distributions have enabled `fstrim.timer` service. I highly don't recommend you to have enabled both `fstrim.timer` service and `discard=async` option. With `discard=async` option enabled your system will complety freeze occasionally.
 
@@ -51,7 +53,7 @@
    # mkdir -p /mnt/@/swap
    # sed -i 's/btrfs   defaults,subvol=@rootfs/btrfs defaults,subvol=@,nossd,noatime,space_cache,compress=zstd/' /mnt/@/etc/fstab
    # echo "/dev/mapper/sda2_crypt /home btrfs defaults,subvol=@home,nossd,noatime,space_cache,compress=zstd 0 0" >> /mnt/@/etc/fstab
-   # echo "/dev/mapper/sda2_crypt /swap btrfs defaults,subvol=@swap,nossd,noatime,space_cache,compress=no,nodatacow 0 0" >> /mnt/@/etc/fstab
+   # echo "/dev/mapper/sda2_crypt /swap btrfs defaults,subvol=@swap,nossd,noatime,space_cache,nodatacow 0 0" >> /mnt/@/etc/fstab
    # btrfs subvolume list /mnt
    # umount -l /mnt
    # mount -o defaults,subvolid=256,subvol=@,nossd,noatime,space_cache,compress=zstd /dev/mapper/sda2_crypt /target
@@ -63,7 +65,7 @@
 
    * Move back to `tty1` with `Ctrl+Alt+F1` if you are using the `Text installer` or to `tty5` with `Ctrl+Alt+F5` if you are using the `Graphical installer`
 
-4. Installing the system
+4. Install the system
 
    * Install the base system, Select and install software, etc.
 
@@ -73,7 +75,7 @@
 
    * Boot into the installed system and open a terminal
 
-   * Creating the swapfile
+   * Create a `swapfile`
 
    ```
    $ sudo -i
@@ -87,4 +89,38 @@
    # exit
    ```
 
-   * Soon more
+   * Install `timeshift`
+
+   ```
+   $ sudo apt install timeshift
+   ```
+
+   * Configure `timeshift`
+
+      * The easy way to configure `timeshift` is to use the graphical interface
+
+      * If you run this into a server you can fully configuring `timeshift` from cli by editing /etc/timeshift/timeshift.json which can be generated with following command
+
+      ```
+      $ sudo timeshift --snapshot-device /dev/mapper/sda2_crypt --btrfs
+      ```
+
+   * Install and configure [timeshift-autosnap-apt](https://github.com/wmutschl/timeshift-autosnap-apt)
+
+   ```
+   $ sudo apt install git make
+   $ git clone https://github.com/wmutschl/timeshift-autosnap-apt.git /home/$USER/timeshift-autosnap-apt
+   $ cd /home/$USER/timeshift-autosnap-apt
+   $ sudo make install
+   $ sudo sed -i 's/snapshotEFI=true/snapshotEFI=false/' /etc/timeshift-autosnap-apt.conf
+   ```
+
+   * Install and configure [grub-btrfs](https://github.com/Antynea/grub-btrfs)
+
+   ```
+   $ git clone https://github.com/Antynea/grub-btrfs.git /home/$USER/grub-btrfs
+   $ cd /home/$USER/grub-btrfs
+   $ sudo make install
+   $ sudo sed -i 's/#GRUB_BTRFS_SUBMENUNAME="Arch Linux snapshots"/GRUB_BTRFS_SUBMENUNAME="Debian GNU\/Linux snapshots"/' /etc/default/grub-btrfs/config
+   ```
+
